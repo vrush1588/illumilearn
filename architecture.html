@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IllumiLearn — Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --cream:       #faf6f0;
+    --cream2:      #f5ede0;
+    --cream3:      #ede0cc;
+    --brown:       #7c5c3a;
+    --brown-light: #a07850;
+    --orange:      #f97316;
+    --pink:        #ec4899;
+    --purple:      #8b5cf6;
+    --purple-dark: #7c3aed;
+    --green:       #16a34a;
+    --blue:        #0284c7;
+    --ink:         #2d1f0e;
+    --ink-soft:    #6b4f32;
+    --shadow:      rgba(124,92,58,0.13);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 24px 60px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(249,115,22,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(139,92,246,0.04) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  .wrapper { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 48px; animation: fadeDown 0.7s ease both; }
+  .header-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--cream2); border: 2px solid var(--cream3);
+    border-radius: 99px; padding: 6px 18px;
+    font-size: 0.78rem; font-weight: 800; color: var(--brown-light);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  .header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.8rem, 7vw, 4.5rem);
+    background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1.1; margin-bottom: 10px;
+  }
+  .header p { font-size: 1rem; color: var(--ink-soft); font-weight: 700; }
+
+  /* Section label */
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 3px; text-transform: uppercase; color: var(--brown-light);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--cream3); }
+
+  /* 3-Layer flow */
+  .arch-flow {
+    display: grid; grid-template-columns: 1fr 56px 1fr 56px 1fr;
+    align-items: center; margin-bottom: 40px;
+    animation: fadeUp 0.7s ease 0.1s both;
+  }
+  .layer {
+    background: #fff9f3; border: 2.5px solid var(--cream3);
+    border-radius: 28px; padding: 28px 20px; text-align: center;
+    box-shadow: 0 6px 24px var(--shadow); position: relative;
+    transition: transform 0.25s, box-shadow 0.25s;
+  }
+  .layer:hover { transform: translateY(-4px); box-shadow: 0 14px 36px var(--shadow); }
+  .layer-icon { font-size: 2.8rem; margin-bottom: 10px; display: block; }
+  .layer-title { font-family: 'Fredoka One', cursive; font-size: 1.25rem; margin-bottom: 6px; }
+  .layer-sub { font-size: 0.78rem; color: var(--ink-soft); font-weight: 700; margin-bottom: 14px; }
+  .layer-tag {
+    display: inline-block; background: var(--cream2); border: 1.5px solid var(--cream3);
+    border-radius: 99px; padding: 3px 12px; font-size: 0.7rem; font-weight: 800;
+    color: var(--brown); font-family: 'DM Mono', monospace;
+  }
+  .layer-frontend { border-color: rgba(249,115,22,0.3); }
+  .layer-backend  { border-color: rgba(139,92,246,0.3); }
+  .layer-gemini   { border-color: rgba(2,132,199,0.3); }
+  .layer-frontend .layer-title { color: var(--orange); }
+  .layer-backend  .layer-title { color: var(--purple-dark); }
+  .layer-gemini   .layer-title { color: var(--blue); }
+  .layer-features { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  .layer-features li {
+    font-size: 0.78rem; font-weight: 700; color: var(--ink-soft);
+    display: flex; align-items: center; gap: 7px;
+    background: var(--cream2); border-radius: 10px; padding: 6px 10px;
+  }
+
+  /* Flow arrow */
+  .flow-arrow { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--brown-light); }
+  .flow-arrow svg { opacity: 0.45; }
+  .flow-arrow span {
+    font-size: 0.6rem; font-weight: 800; color: var(--brown-light);
+    letter-spacing: 0.5px; text-transform: uppercase;
+    font-family: 'DM Mono', monospace; opacity: 0.65; text-align: center;
+  }
+
+  /* Interleaved */
+  .interleaved-box {
+    background: #fff9f3; border: 2.5px solid rgba(236,72,153,0.25);
+    border-radius: 28px; padding: 28px;
+    box-shadow: 0 6px 24px var(--shadow);
+    margin-bottom: 40px; animation: fadeUp 0.7s ease 0.2s both;
+  }
+  .interleaved-title { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: var(--pink); margin-bottom: 6px; }
+  .interleaved-sub { font-size: 0.8rem; color: var(--ink-soft); font-weight: 700; margin-bottom: 20px; }
+  .stream-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .stream-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--cream2); border: 1.5px solid var(--cream3);
+    border-radius: 14px; padding: 10px 16px;
+    font-size: 0.8rem; font-weight: 800; color: var(--ink);
+  }
+  .stream-item.text-item  { border-color: rgba(22,163,74,0.3);  background: rgba(22,163,74,0.06);  color: var(--green); }
+  .stream-item.image-item { border-color: rgba(2,132,199,0.3);  background: rgba(2,132,199,0.06);  color: var(--blue); }
+  .stream-item.quiz-item  { border-color: rgba(249,115,22,0.3); background: rgba(249,115,22,0.06); color: var(--orange); }
+  .stream-item.audio-item { border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.06); color: var(--purple-dark); }
+  .stream-arrow { color: var(--cream3); font-size: 1.3rem; font-weight: 900; }
+
+  /* Cloud grid */
+  .cloud-grid {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 14px; margin-bottom: 40px;
+    animation: fadeUp 0.7s ease 0.3s both;
+  }
+  .cloud-card {
+    background: #fff9f3; border: 2px solid var(--cream3);
+    border-radius: 20px; padding: 20px 16px; text-align: center;
+    box-shadow: 0 4px 16px var(--shadow); transition: transform 0.2s;
+  }
+  .cloud-card:hover { transform: translateY(-3px); }
+  .cloud-card-icon { font-size: 2rem; margin-bottom: 8px; }
+  .cloud-card-title { font-family: 'Fredoka One', cursive; font-size: 1rem; color: var(--purple-dark); margin-bottom: 4px; }
+  .cloud-card-desc { font-size: 0.72rem; color: var(--ink-soft); font-weight: 700; line-height: 1.5; }
+  .cloud-card-tag {
+    display: inline-block; margin-top: 8px;
+    background: rgba(139,92,246,0.08); border: 1.5px solid rgba(139,92,246,0.2);
+    border-radius: 99px; padding: 2px 10px; font-size: 0.65rem; font-weight: 800;
+    color: var(--purple-dark); font-family: 'DM Mono', monospace;
+  }
+
+  /* Tech stack */
+  .tech-grid {
+    display: grid; grid-template-columns: repeat(6,1fr);
+    gap: 12px; margin-bottom: 40px;
+    animation: fadeUp 0.7s ease 0.4s both;
+  }
+  .tech-pill {
+    background: #fff9f3; border: 2px solid var(--cream3);
+    border-radius: 16px; padding: 14px 10px; text-align: center;
+    box-shadow: 0 3px 12px var(--shadow); transition: transform 0.2s;
+  }
+  .tech-pill:hover { transform: translateY(-2px); }
+  .tech-pill-icon { font-size: 1.6rem; margin-bottom: 6px; }
+  .tech-pill-name { font-size: 0.72rem; font-weight: 800; color: var(--ink); display: block; }
+  .tech-pill-type { font-size: 0.62rem; color: var(--ink-soft); font-weight: 700; font-family: 'DM Mono', monospace; }
+
+  /* Footer badge */
+  .hackathon-badge { text-align: center; animation: fadeUp 0.7s ease 0.5s both; }
+  .badge-inner {
+    display: inline-flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center;
+    background: linear-gradient(135deg, rgba(249,115,22,0.07), rgba(236,72,153,0.07), rgba(139,92,246,0.07));
+    border: 2px solid var(--cream3); border-radius: 99px; padding: 14px 32px;
+    box-shadow: 0 4px 16px var(--shadow);
+  }
+  .badge-inner span { font-size: 0.82rem; font-weight: 800; color: var(--ink-soft); }
+  .badge-inner strong {
+    font-family: 'Fredoka One', cursive; font-size: 1rem;
+    background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .badge-dot { width: 5px; height: 5px; background: var(--cream3); border-radius: 99px; }
+
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(20px);  } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 768px) {
+    .arch-flow  { grid-template-columns: 1fr; }
+    .cloud-grid { grid-template-columns: repeat(2,1fr); }
+    .tech-grid  { grid-template-columns: repeat(3,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">🏆 Google Gemini Live Agent Challenge 2026</div>
+    <h1>IllumiLearn</h1>
+    <p>✨ System Architecture Diagram — Illuminate Every Concept ✨</p>
+  </div>
+
+  <!-- 3-Layer Flow -->
+  <div class="section-label">01 — System Overview</div>
+  <div class="arch-flow">
+    <div class="layer layer-frontend">
+      <span class="layer-icon">🖥️</span>
+      <div class="layer-title">Frontend</div>
+      <div class="layer-sub">React + TypeScript</div>
+      <span class="layer-tag">Firebase Hosting</span>
+      <ul class="layer-features">
+        <li>📚 Storybook viewer</li>
+        <li>🧠 Quiz interface</li>
+        <li>🌊 Live streaming UI</li>
+        <li>🎨 Colorful page themes</li>
+      </ul>
+    </div>
+
+    <div class="flow-arrow">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <span>HTTP<br/>Stream</span>
+    </div>
+
+    <div class="layer layer-backend">
+      <span class="layer-icon">⚙️</span>
+      <div class="layer-title">Agent Backend</div>
+      <div class="layer-sub">Python + FastAPI</div>
+      <span class="layer-tag">Cloud Run</span>
+      <ul class="layer-features">
+        <li>🤖 Orchestrator agent</li>
+        <li>🌊 Streaming response</li>
+        <li>🔀 Interleaved output</li>
+        <li>🔒 CORS + security</li>
+      </ul>
+    </div>
+
+    <div class="flow-arrow">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <span>Gemini<br/>API</span>
+    </div>
+
+    <div class="layer layer-gemini">
+      <span class="layer-icon">✨</span>
+      <div class="layer-title">Gemini AI</div>
+      <div class="layer-sub">Google DeepMind</div>
+      <span class="layer-tag">gemini-1.5-flash</span>
+      <ul class="layer-features">
+        <li>📝 Story generation</li>
+        <li>🎨 Image generation</li>
+        <li>🧠 Quiz creation</li>
+        <li>🔀 Mixed modalities</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Interleaved Output -->
+  <div class="section-label">02 — Interleaved Output (Hackathon Requirement ✅)</div>
+  <div class="interleaved-box">
+    <div class="interleaved-title">🌊 Gemini Interleaved / Mixed Output Stream</div>
+    <div class="interleaved-sub">One agent call streams TEXT + IMAGES + QUIZ together in real time — each page arrives as soon as it's generated</div>
+    <div class="stream-flow">
+      <div class="stream-item text-item">📝 Story Text</div>
+      <div class="stream-arrow">→</div>
+      <div class="stream-item image-item">🎨 Illustration</div>
+      <div class="stream-arrow">→</div>
+      <div class="stream-item text-item">📝 Story Text</div>
+      <div class="stream-arrow">→</div>
+      <div class="stream-item image-item">🎨 Illustration</div>
+      <div class="stream-arrow">→</div>
+      <div class="stream-item text-item">📝 Story Text</div>
+      <div class="stream-arrow">→</div>
+      <div class="stream-item image-item">🎨 Illustration</div>
+      <div class="stream-arrow">→</div>
+      <div class="stream-item quiz-item">🧠 Quiz</div>
+      <div class="stream-arrow">→</div>
+      <div class="stream-item audio-item">🔊 Audio (bonus)</div>
+    </div>
+  </div>
+
+  <!-- Google Cloud -->
+  <div class="section-label">03 — Google Cloud Infrastructure</div>
+  <div class="cloud-grid">
+    <div class="cloud-card">
+      <div class="cloud-card-icon">🏃</div>
+      <div class="cloud-card-title">Cloud Run</div>
+      <div class="cloud-card-desc">Python FastAPI agent. Serverless, auto-scales to zero, no server management.</div>
+      <span class="cloud-card-tag">Backend Host</span>
+    </div>
+    <div class="cloud-card">
+      <div class="cloud-card-icon">🔥</div>
+      <div class="cloud-card-title">Firebase</div>
+      <div class="cloud-card-desc">React frontend hosting. Global CDN, instant deploys, free SSL certificate.</div>
+      <span class="cloud-card-tag">Frontend Host</span>
+    </div>
+    <div class="cloud-card">
+      <div class="cloud-card-icon">✨</div>
+      <div class="cloud-card-title">Gemini API</div>
+      <div class="cloud-card-desc">gemini-1.5-flash for story + quiz. Image model for illustrations per page.</div>
+      <span class="cloud-card-tag">AI Engine</span>
+    </div>
+    <div class="cloud-card">
+      <div class="cloud-card-icon">🔑</div>
+      <div class="cloud-card-title">Secret Manager</div>
+      <div class="cloud-card-desc">Securely stores Gemini API key. Injected into Cloud Run at runtime safely.</div>
+      <span class="cloud-card-tag">Security</span>
+    </div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="section-label">04 — Tech Stack</div>
+  <div class="tech-grid">
+    <div class="tech-pill"><div class="tech-pill-icon">⚛️</div><span class="tech-pill-name">React</span><span class="tech-pill-type">Frontend</span></div>
+    <div class="tech-pill"><div class="tech-pill-icon">📘</div><span class="tech-pill-name">TypeScript</span><span class="tech-pill-type">Language</span></div>
+    <div class="tech-pill"><div class="tech-pill-icon">🐍</div><span class="tech-pill-name">Python</span><span class="tech-pill-type">Backend</span></div>
+    <div class="tech-pill"><div class="tech-pill-icon">⚡</div><span class="tech-pill-name">FastAPI</span><span class="tech-pill-type">API Framework</span></div>
+    <div class="tech-pill"><div class="tech-pill-icon">✨</div><span class="tech-pill-name">Gemini 1.5</span><span class="tech-pill-type">AI Model</span></div>
+    <div class="tech-pill"><div class="tech-pill-icon">☁️</div><span class="tech-pill-name">Google Cloud</span><span class="tech-pill-type">Infrastructure</span></div>
+  </div>
+
+  <!-- Footer badge -->
+  <div class="hackathon-badge">
+    <div class="badge-inner">
+      <span>🏆</span>
+      <strong>Creative Storyteller Track</strong>
+      <div class="badge-dot"></div>
+      <span>Gemini Live Agent Challenge</span>
+      <div class="badge-dot"></div>
+      <span>Google Cloud Hosted</span>
+      <div class="badge-dot"></div>
+      <span>Interleaved Output ✅</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
