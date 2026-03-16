@@ -127,6 +127,7 @@
     border-radius: 14px; padding: 10px 16px;
     font-size: 0.8rem; font-weight: 800; color: var(--ink);
   }
+  .stream-item.cover-item { border-color: rgba(236,72,153,0.3); background: rgba(236,72,153,0.06); color: var(--pink); }
   .stream-item.text-item  { border-color: rgba(22,163,74,0.3);  background: rgba(22,163,74,0.06);  color: var(--green); }
   .stream-item.image-item { border-color: rgba(2,132,199,0.3);  background: rgba(2,132,199,0.06);  color: var(--blue); }
   .stream-item.quiz-item  { border-color: rgba(249,115,22,0.3); background: rgba(249,115,22,0.06); color: var(--orange); }
@@ -157,7 +158,7 @@
 
   /* Tech stack */
   .tech-grid {
-    display: grid; grid-template-columns: repeat(6,1fr);
+    display: grid; grid-template-columns: repeat(7,1fr);
     gap: 12px; margin-bottom: 40px;
     animation: fadeUp 0.7s ease 0.4s both;
   }
@@ -250,7 +251,7 @@
       <span class="layer-icon">✨</span>
       <div class="layer-title">Gemini AI</div>
       <div class="layer-sub">Google DeepMind</div>
-      <span class="layer-tag">gemini-1.5-flash</span>
+      <span class="layer-tag">gemini-3-flash-preview</span>
       <ul class="layer-features">
         <li>📝 Story generation</li>
         <li>🎨 Image generation</li>
@@ -264,8 +265,10 @@
   <div class="section-label">02 — Interleaved Output (Hackathon Requirement ✅)</div>
   <div class="interleaved-box">
     <div class="interleaved-title">🌊 Gemini Interleaved / Mixed Output Stream</div>
-    <div class="interleaved-sub">One agent call streams TEXT + IMAGES + QUIZ together in real time — each page arrives as soon as it's generated</div>
+    <div class="interleaved-sub">One agent call streams COVER PAGE + TEXT + IMAGES + QUIZ together in real time — each part arrives as soon as it's generated</div>
     <div class="stream-flow">
+      <div class="stream-item cover-item">📖 Cover Page</div>
+      <div class="stream-arrow">→</div>
       <div class="stream-item text-item">📝 Story Text</div>
       <div class="stream-arrow">→</div>
       <div class="stream-item image-item">🎨 Illustration</div>
@@ -279,8 +282,6 @@
       <div class="stream-item image-item">🎨 Illustration</div>
       <div class="stream-arrow">→</div>
       <div class="stream-item quiz-item">🧠 Quiz</div>
-      <div class="stream-arrow">→</div>
-      <div class="stream-item audio-item">🔊 Audio (bonus)</div>
     </div>
   </div>
 
@@ -302,7 +303,7 @@
     <div class="cloud-card">
       <div class="cloud-card-icon">✨</div>
       <div class="cloud-card-title">Gemini API</div>
-      <div class="cloud-card-desc">gemini-1.5-flash for story + quiz. Image model for illustrations per page.</div>
+      <div class="cloud-card-desc">gemini-3-flash-preview for story + quiz. gemini-2.5-flash-image for illustrations per page.</div>
       <span class="cloud-card-tag">AI Engine</span>
     </div>
     <div class="cloud-card">
@@ -320,7 +321,8 @@
     <div class="tech-pill"><div class="tech-pill-icon">📘</div><span class="tech-pill-name">TypeScript</span><span class="tech-pill-type">Language</span></div>
     <div class="tech-pill"><div class="tech-pill-icon">🐍</div><span class="tech-pill-name">Python</span><span class="tech-pill-type">Backend</span></div>
     <div class="tech-pill"><div class="tech-pill-icon">⚡</div><span class="tech-pill-name">FastAPI</span><span class="tech-pill-type">API Framework</span></div>
-    <div class="tech-pill"><div class="tech-pill-icon">✨</div><span class="tech-pill-name">Gemini 1.5</span><span class="tech-pill-type">AI Model</span></div>
+    <div class="tech-pill"><div class="tech-pill-icon">✨</div><span class="tech-pill-name">gemini-3-flash-preview</span><span class="tech-pill-type">Story / Quiz</span></div>
+    <div class="tech-pill"><div class="tech-pill-icon">🎨</div><span class="tech-pill-name">gemini-2.5-flash-image</span><span class="tech-pill-type">Image Model</span></div>
     <div class="tech-pill"><div class="tech-pill-icon">☁️</div><span class="tech-pill-name">Google Cloud</span><span class="tech-pill-type">Infrastructure</span></div>
   </div>
 
