@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+
+# Test files — not needed in production
+check_models.py
+test_image_models.py
+test_cover.png
+main_working_backup.py
+
+# Dev files
+*.txt.bak

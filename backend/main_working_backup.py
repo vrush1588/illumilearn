@@ -30,10 +30,8 @@ TARGET_AGE  = "6-12"
 # 🧪 DEV MODE (Prevents image API quota usage)
 # ============================================================
 
-DEV_MODE = False
+DEV_MODE = True
 
-def log(msg: str):
-    print(msg)
 
 BASE64_FILE = "cover_base64.txt"  # default fallback
 
@@ -42,8 +40,10 @@ def get_cover_file(topic: str) -> str:
     first = topic.strip()[0].lower() if topic.strip() else "d"
     filename = f"cover_base64_{first}.txt"
     if os.path.exists(filename):
+        print(f"🎨 Using cover file: {filename}")
         return filename
-    return BASE64_FILE  # fallback to default
+    print(f"⚠️ No file for '{first}', using default")
+    return BASE64_FILE
 
 
 # ============================================================
@@ -52,8 +52,6 @@ client_text  = genai.Client(api_key=GEMINI_API_KEY_TEXT)
 client_image = genai.Client(api_key=GEMINI_API_KEY_IMAGE)
 
 app = FastAPI()
-
-# print("📁 Cover files:", [f for f in os.listdir() if "cover_base64" in f])
 
 app.add_middleware(
     CORSMiddleware,
@@ -77,7 +75,9 @@ def clean_json(text: str) -> str:
 def compress_image(image_bytes: bytes, max_size: int = 250, quality: int = 75) -> str:
     """Compress image to JPEG and return base64 string"""
     try:
+        print(f"🗜️ Compressing image: {len(image_bytes)//1024}KB")
         img = Image.open(io.BytesIO(image_bytes))
+        print(f"🗜️ Image mode: {img.mode}, size: {img.size}")
         # Convert to RGB if needed (PNG with alpha channel)
         if img.mode in ("RGBA", "P", "LA"):
             img = img.convert("RGB")
@@ -85,9 +85,12 @@ def compress_image(image_bytes: bytes, max_size: int = 250, quality: int = 75) -
         output = io.BytesIO()
         img.save(output, format='JPEG', quality=quality, optimize=True)
         compressed = output.getvalue()
+        print(f"✅ Compressed: {len(image_bytes)//1024}KB → {len(compressed)//1024}KB")
         return f"data:image/jpeg;base64,{base64.b64encode(compressed).decode()}"
     except Exception as e:
         print(f"❌ Compression failed: {e}")
+        import traceback
+        traceback.print_exc()
         # Return original without compression as fallback
         return f"data:image/png;base64,{base64.b64encode(image_bytes).decode()}"
 
@@ -203,7 +206,7 @@ Return ONLY valid JSON:
                         saved_b64 = f.read().strip()
                     saved_b64 = saved_b64.replace("\n", "").replace("\r", "").strip()
                     cover_url = f"data:image/jpeg;base64,{saved_b64}"
-                    log(f"🧪 DEV MODE: Loaded cover from {cover_file} ✅")
+                    print(f"🧪 DEV MODE: Loaded cover from {cover_file} ✅")
                 else:
                     cover_url = ""
                     print(f"⚠️ DEV MODE: {cover_file} not found!")
@@ -211,6 +214,7 @@ Return ONLY valid JSON:
             else:
 
                 try:
+                    print("🎨 Calling Gemini image model...")
 
                     img_response = await asyncio.to_thread(
                         client_image.models.generate_content,
@@ -220,6 +224,7 @@ Return ONLY valid JSON:
                             response_modalities=["IMAGE"],
                         )
                     )
+                    print("✅ Image generated")
 
                     got_image = False
 
@@ -241,7 +246,7 @@ Return ONLY valid JSON:
                             compressed_b64 = cover_url.split(",")[1]
                             with open(BASE64_FILE, "w") as f:
                                 f.write(compressed_b64)
-                            log("💾 Compressed base64 saved to cover_base64.txt")
+                            print("💾 Compressed base64 saved to cover_base64.txt")
 
                             got_image = True
                             break
@@ -275,6 +280,7 @@ Return ONLY valid JSON:
                 "message": "✍️ Writing your story..."
             }) + "\n"
             
+            print("✍️ Generating story...")
 
             response =await asyncio.to_thread(
                 client_text.models.generate_content,
@@ -288,6 +294,8 @@ Return ONLY valid JSON:
             )
 
             
+            print(f"✍️ Model Response Raw: {response.text}")
+            print("✅ Story generated")
 
             try:
                 story_data = json.loads(clean_json(response.text))
@@ -333,6 +341,7 @@ Return ONLY valid JSON:
 
                 }) + "\n"
 
+            print("✅ Story generated")
 
             # ==================================================
             # STEP 4 — QUIZ

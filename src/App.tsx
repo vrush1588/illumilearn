@@ -2,9 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { generateStorybookStream, StreamUpdate } from './services/geminiService';
 import { StoryPage, QuizQuestion } from './types';
 import { PAGE_THEMES, TOPICS, LOADING_STEPS } from './constants';
+import { log } from 'console';
 
 export default function App() {
-  const [phase, setPhase] = useState<"home" | "loading" | "storybook" | "quiz" | "results">("home");
+  const [phase, setPhase] = useState<"home" | "loading" | "cover" | "storybook" | "quiz" | "results">("home");
   const [topic, setTopic] = useState("");
   const [pages, setPages] = useState<StoryPage[]>([]);
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
@@ -19,6 +20,7 @@ export default function App() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showCorrect, setShowCorrect] = useState(false);
   const [streamingPages, setStreamingPages] = useState<StoryPage[]>([]);
+  const [coverUrl, setCoverUrl] = useState<string>("");
 
   const handleGenerate = useCallback(async (t?: string) => {
     const finalTopic = t || topic;
@@ -32,6 +34,7 @@ export default function App() {
     setStreamingPages([]);
     setPages([]);
     setQuiz([]);
+    setCoverUrl("");
     setQuizAnswers([]);
     setCurrentQ(0);
 
@@ -45,6 +48,13 @@ export default function App() {
     try {
       await generateStorybookStream(finalTopic, (update: StreamUpdate) => {
         switch (update.type) {
+
+          // Cover image arrives first!
+          case "cover":
+            console.log("🎨 Cover received! URL length:", update.coverUrl?.length, "Has image:", !!update.coverUrl);
+            setCoverUrl(update.coverUrl || "");
+            setPhase("cover");
+            break;
 
           // Status updates — shown in loading screen
           case "status":
@@ -69,20 +79,26 @@ export default function App() {
             if (update.quiz) setQuiz(update.quiz);
             break;
 
-          // All done! Show the storybook
+          // All done! Pages ready
           case "complete":
+            console.log("✅ Complete! streamingPages count:", streamingPages.length);
             clearInterval(iv);
             setLoadingStep(LOADING_STEPS.length);
             setStreamingPages(prev => {
+              console.log("✅ Setting pages, count:", prev.length);
               setPages(prev);
+              setPhase(curr => {
+                console.log("✅ Current phase:", curr, "→", curr === "cover" ? "cover" : "storybook");
+                return curr === "cover" ? "cover" : "storybook";
+              });
               return prev;
             });
-            setTimeout(() => setPhase("storybook"), 600);
             break;
 
           // Error handling
           case "error":
             clearInterval(iv);
+            console.log("Error 101");
             setError("⚠️ " + (update.message || "Something went wrong. Try again!"));
             setPhase("home");
             break;
@@ -90,6 +106,7 @@ export default function App() {
       });
     } catch (err: any) {
       clearInterval(iv);
+      console.log("Error 109"+err);
       setError("⚠️ " + (err.message || "Could not connect to agent. Is it running?"));
       setPhase("home");
     }
@@ -233,6 +250,48 @@ export default function App() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ════ COVER ════ */}
+      {phase === "cover" && (
+        <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",zIndex:1,position:"relative"}}>
+          <div className="pop-in" style={{maxWidth:"420px",width:"100%",textAlign:"center"}}>
+            {/* Book cover image */}
+            <div style={{borderRadius:"28px",overflow:"hidden",boxShadow:"0 28px 70px rgba(0,0,0,0.18)",border:"4px solid rgba(255,255,255,0.9)",marginBottom:"20px",position:"relative"}}>
+              {coverUrl ? (
+                <img src={coverUrl} alt={topic} style={{width:"100%",height:"320px",objectFit:"cover",display:"block"}}/>
+              ) : (
+                <div style={{width:"100%",height:"320px",background:"linear-gradient(135deg,#f97316,#ec4899,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"80px"}}>📚</div>
+              )}
+              <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,0.75))",padding:"32px 20px 20px"}}>
+                <h1 style={{fontFamily:"'Fredoka One',cursive",fontSize:"1.8rem",color:"white",margin:0,textShadow:"0 2px 8px rgba(0,0,0,0.5)",lineHeight:1.2}}>{topic}</h1>
+                <p style={{color:"rgba(255,255,255,0.8)",fontSize:"0.8rem",fontWeight:700,margin:"4px 0 0",letterSpacing:"1px"}}>✨ ILLUMINATE EVERY CONCEPT ✨</p>
+              </div>
+            </div>
+
+            {/* Status — pages still loading */}
+            <div style={{background:"white",borderRadius:"16px",padding:"12px 20px",marginBottom:"16px",border:"2px solid #ede0cc",boxShadow:"0 4px 14px rgba(124,92,58,0.08)"}}>
+              <p style={{margin:0,fontWeight:700,color:"#7c3aed",fontSize:"0.9rem"}}>
+                {streamingPages.length > 0
+                  ? `📖 ${streamingPages.length} of 6 pages ready...`
+                  : "✍️ Writing your story..."}
+              </p>
+            </div>
+
+            {/* Open book button — only when all pages ready */}
+            {pages.length > 0 ? (
+              <button className="ilbtn" onClick={()=>{setCurrentPage(0);setPhase("storybook");}}
+                style={{background:"linear-gradient(135deg,#f97316,#ec4899)",color:"white",border:"none",borderRadius:"20px",padding:"16px 36px",fontFamily:"'Fredoka One',cursive",fontSize:"1.2rem",boxShadow:"0 6px 24px rgba(236,72,153,0.45)",width:"100%"}}>
+                📖 Open Your Storybook!
+              </button>
+            ) : (
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"10px",color:"#a07850",fontWeight:700,fontSize:"0.9rem"}}>
+                <span className="spin-it" style={{display:"inline-block",fontSize:"1.2rem"}}>⏳</span>
+                Writing pages...
+              </div>
+            )}
+          </div>
         </div>
       )}
 

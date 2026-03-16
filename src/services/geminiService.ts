@@ -1,29 +1,28 @@
 import { StoryPage, QuizQuestion } from "../types";
 
 // ── Agent URL ────────────────────────────────────────────────
-// During development: points to your local Python agent
-// After deployment: points to Google Cloud Run URL
 const AGENT_URL = process.env.REACT_APP_AGENT_URL || "http://localhost:8000";
+
+// const AGENT_URL = process.env.REACT_APP_AGENT_URL || "https://illumilearn-agent-1011177533066.us-central1.run.app";
 
 // ── Types for streaming ──────────────────────────────────────
 export interface StreamUpdate {
-  type: "status" | "page" | "quiz" | "complete" | "error";
+  type: "status" | "cover" | "page" | "quiz" | "complete" | "error";
   message?: string;
+  coverUrl?: string;
+  topic?: string;
   page?: StoryPage;
   pageNumber?: number;
   totalPages?: number;
   quiz?: QuizQuestion[];
 }
 
-// ── Main Agent Call (Interleaved Streaming) ──────────────────
-// This function calls the Python agent and reads the
-// STREAMING response — this is the INTERLEAVED output!
-// Pages arrive one by one as Gemini generates them.
+// ── Main Agent Call ──────────────────────────────────────────
 export async function generateStorybookStream(
   topic: string,
   onUpdate: (update: StreamUpdate) => void
 ): Promise<void> {
-
+  console.log(AGENT_URL);
   const response = await fetch(`${AGENT_URL}/generate-story`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -34,7 +33,6 @@ export async function generateStorybookStream(
     throw new Error(`Agent error: ${response.status}`);
   }
 
-  // Read the stream line by line
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
 
@@ -42,39 +40,24 @@ export async function generateStorybookStream(
     const { done, value } = await reader.read();
     if (done) break;
 
-    // Decode the chunk and split by newlines
     const chunk = decoder.decode(value, { stream: true });
     const lines = chunk.split("\n").filter(line => line.trim());
 
     for (const line of lines) {
       try {
         const update: StreamUpdate = JSON.parse(line);
+
+        // 🔍 DEBUG LOG
+        console.log("📦 Update:", update.type,
+          update.type === "cover"  ? `coverUrl length: ${update.coverUrl?.length}, hasImage: ${!!update.coverUrl}` :
+          update.type === "page"   ? `page: ${update.page?.title}` :
+          update.type === "error"  ? `❌ ${update.message}` :
+          update.message || "");
+
         onUpdate(update);
-      } catch {
-        // Skip invalid lines
+      } catch (e) {
+        console.warn("⚠️ Failed to parse line:", line, e);
       }
     }
   }
-}
-
-// ── Fallback: direct Gemini calls ────────────────────────────
-export async function generateStorybook(topic: string): Promise<StoryPage[]> {
-  const { GoogleGenAI } = await import("@google/genai");
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
-
-  const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
-    contents: `Generate a 6-page educational storybook for kids aged 6-12 about: "${topic}".
-Each page must have a fun title, 2-3 sentences of story teaching through fun characters, and 3 emojis.
-Return ONLY valid JSON array of exactly 6 objects, no markdown, no backticks.`,
-    config: {
-      systemInstruction: "You are a children's educator for IllumiLearn. Return ONLY valid JSON array.",
-      responseMimeType: "application/json",
-    },
-  });
-
-  const raw = response.text?.trim() ?? "";
-  const clean = raw.replace(/```json|```/g, "").trim();
-  try { return JSON.parse(clean); }
-  catch { throw new Error("Could not read the story. Please try again! 🔄"); }
 }
