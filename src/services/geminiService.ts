@@ -1,9 +1,9 @@
 import { StoryPage, QuizQuestion } from "../types";
 
 // ── Agent URL ────────────────────────────────────────────────
-const AGENT_URL = process.env.REACT_APP_AGENT_URL || "http://localhost:8000";
+// const AGENT_URL = process.env.REACT_APP_AGENT_URL || "http://localhost:8000";
 
-// const AGENT_URL = process.env.REACT_APP_AGENT_URL || "https://illumilearn-agent-1011177533066.us-central1.run.app";
+const AGENT_URL = process.env.REACT_APP_AGENT_URL || "https://illumilearn-agent-1011177533066.us-central1.run.app";
 
 // ── Types for streaming ──────────────────────────────────────
 export interface StreamUpdate {

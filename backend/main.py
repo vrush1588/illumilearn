@@ -30,7 +30,7 @@ TARGET_AGE  = "6-12"
 # 🧪 DEV MODE (Prevents image API quota usage)
 # ============================================================
 
-DEV_MODE = False
+DEV_MODE = True
 
 def log(msg: str):
     print(msg)
@@ -53,7 +53,7 @@ client_image = genai.Client(api_key=GEMINI_API_KEY_IMAGE)
 
 app = FastAPI()
 
-# print("📁 Cover files:", [f for f in os.listdir() if "cover_base64" in f])
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -203,7 +203,7 @@ Return ONLY valid JSON:
                         saved_b64 = f.read().strip()
                     saved_b64 = saved_b64.replace("\n", "").replace("\r", "").strip()
                     cover_url = f"data:image/jpeg;base64,{saved_b64}"
-                    log(f"🧪 DEV MODE: Loaded cover from {cover_file} ✅")
+                    #log(f"🧪 DEV MODE: Loaded cover from {cover_file} ✅")
                 else:
                     cover_url = ""
                     print(f"⚠️ DEV MODE: {cover_file} not found!")
@@ -241,7 +241,7 @@ Return ONLY valid JSON:
                             compressed_b64 = cover_url.split(",")[1]
                             with open(BASE64_FILE, "w") as f:
                                 f.write(compressed_b64)
-                            log("💾 Compressed base64 saved to cover_base64.txt")
+                            #log("💾 Compressed base64 saved to cover_base64.txt")
 
                             got_image = True
                             break
@@ -263,8 +263,7 @@ Return ONLY valid JSON:
                 "topic": topic
             }) + "\n"
 
-            # ⏳ Small delay so frontend renders cover before story starts
-            # await asyncio.sleep(1.5)
+           
 
             # ==================================================
             # STEP 2 — GENERATE STORY
@@ -275,6 +274,8 @@ Return ONLY valid JSON:
                 "message": "✍️ Writing your story..."
             }) + "\n"
             
+             # ⏳ Small delay so frontend renders cover before story starts
+            await asyncio.sleep(1.0)  # Adjusted to 1.0s for faster transition
 
             response =await asyncio.to_thread(
                 client_text.models.generate_content,
@@ -291,15 +292,12 @@ Return ONLY valid JSON:
 
             try:
                 story_data = json.loads(clean_json(response.text))
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:  # Fixed: Added 'as e' to define the exception variable
                 print("❌ STORY ERROR:", e)
-
                 yield json.dumps({
                     "type": "error",
                     "message": f"Story generation failed: {str(e)}"
-
                 }) + "\n"
-
                 return
 
             pages = story_data.get("pages", [])
